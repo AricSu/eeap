@@ -1,0 +1,53 @@
+{
+  "expectedIssueCodes": [
+    "dual_terminal_events"
+  ],
+  "trace": {
+    "capability": {
+      "id": "warehouse.door.unlock",
+      "title": "Unlock Warehouse Door",
+      "description": "Unlock a named warehouse door via access control system",
+      "inputSchema": {
+        "type": "object"
+      },
+      "completionMode": "accepted_only",
+      "idempotent": true
+    },
+    "requests": [
+      {
+        "executionId": "exec-dual-terminal",
+        "capabilityId": "warehouse.door.unlock",
+        "input": {},
+        "idempotencyKey": "idem-dual-terminal",
+        "requestedAt": "2026-04-23T20:21:00Z"
+      }
+    ],
+    "events": [
+      {
+        "eventId": "evt-requested",
+        "executionId": "exec-dual-terminal",
+        "type": "requested",
+        "at": "2026-04-23T20:21:00Z"
+      },
+      {
+        "eventId": "evt-ack",
+        "executionId": "exec-dual-terminal",
+        "type": "acknowledged",
+        "at": "2026-04-23T20:21:01Z"
+      },
+      {
+        "eventId": "evt-completed",
+        "executionId": "exec-dual-terminal",
+        "type": "completed",
+        "at": "2026-04-23T20:21:02Z"
+      },
+      {
+        "eventId": "evt-failed",
+        "executionId": "exec-dual-terminal",
+        "type": "failed",
+        "at": "2026-04-23T20:21:03Z"
+      }
+    ],
+    "evidence": []
+  }
+}

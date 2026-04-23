@@ -1,0 +1,59 @@
+{
+  "trace": {
+    "capability": {
+      "id": "warehouse.door.unlock",
+      "title": "Unlock Warehouse Door",
+      "description": "Unlock a named warehouse door via access control system",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "siteId": {
+            "type": "string"
+          },
+          "doorId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "siteId",
+          "doorId"
+        ]
+      },
+      "completionMode": "accepted_only",
+      "idempotent": true
+    },
+    "requests": [
+      {
+        "executionId": "exec-accepted-only",
+        "capabilityId": "warehouse.door.unlock",
+        "input": {
+          "siteId": "ams-1",
+          "doorId": "door-5"
+        },
+        "idempotencyKey": "idem-accepted-only",
+        "requestedAt": "2026-04-23T20:11:00Z"
+      }
+    ],
+    "events": [
+      {
+        "eventId": "evt-requested",
+        "executionId": "exec-accepted-only",
+        "type": "requested",
+        "at": "2026-04-23T20:11:00Z"
+      },
+      {
+        "eventId": "evt-ack",
+        "executionId": "exec-accepted-only",
+        "type": "acknowledged",
+        "at": "2026-04-23T20:11:02Z"
+      },
+      {
+        "eventId": "evt-completed",
+        "executionId": "exec-accepted-only",
+        "type": "completed",
+        "at": "2026-04-23T20:11:03Z"
+      }
+    ],
+    "evidence": []
+  }
+}

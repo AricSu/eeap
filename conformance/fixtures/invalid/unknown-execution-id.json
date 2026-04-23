@@ -1,0 +1,41 @@
+{
+  "expectedIssueCodes": [
+    "unknown_execution_id"
+  ],
+  "trace": {
+    "capability": {
+      "id": "warehouse.door.unlock",
+      "title": "Unlock Warehouse Door",
+      "description": "Unlock a named warehouse door via access control system",
+      "inputSchema": {
+        "type": "object"
+      },
+      "completionMode": "accepted_only",
+      "idempotent": true
+    },
+    "requests": [
+      {
+        "executionId": "exec-known",
+        "capabilityId": "warehouse.door.unlock",
+        "input": {},
+        "idempotencyKey": "idem-known",
+        "requestedAt": "2026-04-23T20:27:00Z"
+      }
+    ],
+    "events": [
+      {
+        "eventId": "evt-requested",
+        "executionId": "exec-known",
+        "type": "requested",
+        "at": "2026-04-23T20:27:00Z"
+      },
+      {
+        "eventId": "evt-ack",
+        "executionId": "exec-missing",
+        "type": "acknowledged",
+        "at": "2026-04-23T20:27:01Z"
+      }
+    ],
+    "evidence": []
+  }
+}

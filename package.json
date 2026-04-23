@@ -1,0 +1,17 @@
+{
+  "name": "eeap",
+  "private": true,
+  "version": "0.0.0",
+  "description": "External Execution Adapter Protocol spec-first repository",
+  "workspaces": [
+    "sdk/ts",
+    "website"
+  ],
+  "scripts": {
+    "check:schemas": "node scripts/check-schemas.mjs",
+    "test": "node --test",
+    "docs:dev": "npm run dev --workspace website",
+    "docs:build": "npm run build --workspace website",
+    "docs:build:pages": "npm run build:pages --workspace website"
+  }
+}

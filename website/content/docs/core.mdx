@@ -1,0 +1,89 @@
+---
+title: Core
+description: The current v0 canonical object model for EEAP.
+---
+
+The current v0 core keeps the object model intentionally small.
+
+## Object Model
+
+<CoreObjectDiagram />
+
+## Canonical Objects
+
+### `CapabilityDescriptor`
+
+Describes an executable capability exposed to the runtime.
+
+Required fields:
+
+- `id`
+- `title`
+- `description`
+- `inputSchema`
+
+Important optional fields:
+
+- `outputSchema`
+- `evidenceModes`
+- `completionMode`
+- `idempotent`
+
+### `ExecutionRequest`
+
+Creates a new external execution attempt.
+
+Required fields:
+
+- `executionId`
+- `capabilityId`
+- `input`
+- `idempotencyKey`
+- `requestedAt`
+
+Important optional fields:
+
+- `contextRef`
+- `deadlineAt`
+- `requestedBy`
+- `evidencePolicy`
+
+### `ExecutionEvent`
+
+Represents an immutable lifecycle fact emitted by an execution implementation.
+
+Required fields:
+
+- `eventId`
+- `executionId`
+- `type`
+- `at`
+
+Important optional fields:
+
+- `summary`
+- `metadata`
+- `evidenceIds`
+
+### `EvidenceRecord`
+
+Represents a first-class fact supporting claims about external execution state.
+
+Required fields:
+
+- `evidenceId`
+- `executionId`
+- `kind`
+- `recordedAt`
+
+Important optional fields:
+
+- `summary`
+- `data`
+- `sourceRef`
+
+## Why The Model Stays Small
+
+The protocol should not hard-code thick ontologies for devices, actors, assets, or vendors into the core. Those belong in adapters and higher layers.
+
+The point of the core is to standardize what an agent runtime must know when execution leaves the runtime boundary.

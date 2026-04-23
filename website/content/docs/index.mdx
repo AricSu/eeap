@@ -1,0 +1,71 @@
+---
+title: EEAP
+description: A thin southbound protocol for agents executing against external systems and the physical world.
+---
+
+EEAP stands for **External Execution Adapter Protocol**.
+
+It is a deliberately small contract for a specific boundary:
+
+- an agent runtime has an intent
+- an external executor accepts or rejects it
+- lifecycle facts arrive over time
+- evidence justifies outcome claims
+- settlement can be attached later without rewriting the execution model
+
+## System At A Glance
+
+<SystemAtAGlanceDiagram />
+
+The shortest useful reading is:
+
+1. the runtime chooses intent
+2. EEAP turns that intent into a durable execution contract
+3. adapters talk to the real executor in executor-native ways
+4. the runtime gets back facts and evidence, not just a local function return value
+
+## Why This Repository Exists
+
+Most agent systems still collapse "tool call" and "world state change" into one blurry operation. That is tolerable for toy demos and fragile for anything that touches real SaaS systems, devices, robots, logistics, or money.
+
+EEAP keeps those concerns separate on purpose.
+
+## Repo Structure
+
+<RepoStructureDiagram />
+
+Each directory has a different job:
+
+- `spec/` is the normative source
+- `schemas/` is the machine-readable contract
+- `sdk/ts/` validates EEAP objects and full execution traces
+- `website/` explains the protocol publicly and stays deployable as a static site
+
+## Read This In Order
+
+1. [Architecture](/docs/architecture)
+2. [Positioning](/docs/positioning)
+3. [Core](/docs/core)
+4. [Lifecycle](/docs/lifecycle)
+5. [SDK](/docs/sdk)
+6. [Adapter Example](/docs/adapter-example)
+7. [Conformance](/docs/conformance)
+
+## Build With It
+
+If you want to move from protocol reading to implementation, start here:
+
+- [SDK](/docs/sdk) for the TypeScript validator entrypoints
+- [Adapter Example](/docs/adapter-example) for a concrete webhook-to-trace flow
+- [Conformance](/docs/conformance) for the v1 rule set and issue codes
+
+## Current Repository Boundary
+
+The repository is spec-first. The current v0 core standardizes:
+
+- `CapabilityDescriptor`
+- `ExecutionRequest`
+- `ExecutionEvent`
+- `EvidenceRecord`
+
+Settlement is part of the problem boundary, but it is intentionally left for a later layer once the execution core is stable.

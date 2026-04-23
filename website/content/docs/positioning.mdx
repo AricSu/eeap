@@ -1,0 +1,58 @@
+---
+title: Positioning
+description: Why EEAP should be a thin southbound contract instead of a bloated all-purpose agent protocol.
+---
+
+EEAP is not trying to replace every adjacent standard. It is trying to hold a smaller line.
+
+> The job is to normalize execution intent, lifecycle observation, evidence, and eventual settlement at the boundary where an agent runtime touches the external world.
+
+## Where EEAP Sits
+
+<ProtocolPositioningDiagram />
+
+## What EEAP Is Not
+
+- not a discovery protocol
+- not a federation layer
+- not a multi-agent collaboration bus
+- not a marketplace schema
+- not a vendor-specific connector SDK
+
+Those systems matter. They just should not be forced into the same core contract.
+
+## Adjacent Standards
+
+| Standard | Why it matters | Why EEAP still exists |
+| --- | --- | --- |
+| `oneM2M` | Rich IoT resource tree, subscriptions, accounting | Too broad and heavy for a thin runtime-to-executor contract |
+| `Web of Things` | Excellent thing and capability description | Better at describing what exists than proving what happened |
+| `LwM2M` | Clear `Execute / Observe / Notify` semantics | Device-management-centric rather than generic external execution |
+| `OPC UA` | Strong industrial object, method, and event model | Carries industrial middleware complexity EEAP should avoid |
+| `CloudEvents` | Portable event envelope | Carries events, not execution truth semantics |
+| `AsyncAPI` | Strong async interface description | Documents channels but not outcome justification |
+| `ROS 2 Actions` | Clean `goal / feedback / result / cancel` lifecycle | Robot middleware pattern, not a general southbound internet contract |
+| `EPCIS` | Excellent provenance and traceability evidence | Great for post-fact evidence, not for submission and admission semantics |
+| `ISO 20022` | Formal settlement messaging | Important only once financial settlement enters the picture |
+
+## Design Consequence
+
+If EEAP absorbs discovery, federation, and collaboration, it becomes another oversized protocol suite.
+
+If EEAP stays narrow, it can do a few things well:
+
+- make idempotent external execution explicit
+- separate invocation from observed truth
+- require evidence when completion claims need proof
+- leave transport bindings open
+- leave settlement formalization for the next layer instead of smearing it into every request
+
+## Current Claim
+
+The defensible claim is not "nothing like this has ever existed."
+
+The defensible claim is:
+
+> EEAP is a thin, agent-runtime southbound contract that unifies execution intent, lifecycle facts, evidence, and the path to settlement without also trying to become discovery or collaboration infrastructure.
+
+For the full repo-level argument, read `spec/positioning.md` in the source tree.

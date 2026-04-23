@@ -1,0 +1,66 @@
+{
+  "expectedIssueCodes": [
+    "idempotency_multiple_terminals"
+  ],
+  "trace": {
+    "capability": {
+      "id": "warehouse.door.unlock",
+      "title": "Unlock Warehouse Door",
+      "description": "Unlock a named warehouse door via access control system",
+      "inputSchema": {
+        "type": "object"
+      },
+      "completionMode": "accepted_only",
+      "idempotent": true
+    },
+    "requests": [
+      {
+        "executionId": "exec-idem-terminal-a",
+        "capabilityId": "warehouse.door.unlock",
+        "input": {},
+        "idempotencyKey": "idem-terminal",
+        "requestedAt": "2026-04-23T20:30:00Z"
+      },
+      {
+        "executionId": "exec-idem-terminal-b",
+        "capabilityId": "warehouse.door.unlock",
+        "input": {},
+        "idempotencyKey": "idem-terminal",
+        "requestedAt": "2026-04-23T20:30:30Z"
+      }
+    ],
+    "events": [
+      {
+        "eventId": "evt-requested-a",
+        "executionId": "exec-idem-terminal-a",
+        "type": "requested",
+        "at": "2026-04-23T20:30:00Z"
+      },
+      {
+        "eventId": "evt-ack-a",
+        "executionId": "exec-idem-terminal-a",
+        "type": "acknowledged",
+        "at": "2026-04-23T20:30:01Z"
+      },
+      {
+        "eventId": "evt-completed-a",
+        "executionId": "exec-idem-terminal-a",
+        "type": "completed",
+        "at": "2026-04-23T20:30:02Z"
+      },
+      {
+        "eventId": "evt-requested-b",
+        "executionId": "exec-idem-terminal-b",
+        "type": "requested",
+        "at": "2026-04-23T20:30:30Z"
+      },
+      {
+        "eventId": "evt-failed-b",
+        "executionId": "exec-idem-terminal-b",
+        "type": "failed",
+        "at": "2026-04-23T20:30:31Z"
+      }
+    ],
+    "evidence": []
+  }
+}

@@ -1,0 +1,84 @@
+---
+title: Conformance
+description: The v1 validation profile that proves EEAP semantics independent of transport.
+---
+
+# Conformance Profile v1
+
+EEAP core stays intentionally small and transport-agnostic.
+
+The v1 conformance profile is the stricter layer used by the TypeScript reference validator and golden fixtures. Its job is to answer a narrower question:
+
+> does this execution trace behave like EEAP says it should?
+
+## What V1 Enforces
+
+The validator checks four things together:
+
+1. schema shape
+2. lifecycle sequencing
+3. evidence linkage
+4. idempotency behavior
+
+That lets an implementation prove semantics without first standardizing HTTP, MCP, queues, or webhook envelopes.
+
+## Lifecycle Tightening
+
+Compared with the base spec, the v1 profile tightens behavior in a few important ways:
+
+- every trace must contain at least one `ExecutionRequest`
+- `requested` is optional, but if emitted it must be first for that execution
+- `completed` must come after `acknowledged`
+- `failed` may happen directly after submission
+- `completed` and `failed` are mutually exclusive
+- after a terminal event, only `evidence_recorded` may be appended
+- event array order is authoritative and timestamps must not go backwards
+
+## Evidence Tightening
+
+The v1 profile also requires stronger evidence handling:
+
+- `readback_confirmed` and `observed_effect` need supporting evidence before `completed`
+- `evidence_recorded` must reference resolvable evidence records
+- evidence records referenced by an event must belong to the same execution
+
+## Idempotency Tightening
+
+Retries sharing one `idempotencyKey` must converge:
+
+- same logical request
+- same `executionId`
+- same `capabilityId`
+- same `input`
+- no terminal outcomes on multiple executions in one idempotency group
+
+## Stable Issue Codes
+
+The first validator release emits stable issue codes so tests and external implementations can assert behavior without parsing free-form prose.
+
+Current codes include:
+
+- `unknown_execution_id`
+- `requested_not_first`
+- `completed_without_acknowledged`
+- `dual_terminal_events`
+- `terminal_event_repeated`
+- `invalid_post_terminal_transition`
+- `evidence_required_for_completion`
+- `unresolved_evidence_reference`
+- `event_time_regressed`
+- `idempotency_execution_mismatch`
+- `idempotency_input_mismatch`
+- `idempotency_multiple_terminals`
+
+## Where To Look In The Repo
+
+- golden fixtures live under `conformance/fixtures`
+- validator logic lives in `sdk/ts/src/validation.ts`
+- repo-level checks live in `test/conformance-validator.test.mjs`
+
+## Read Next
+
+- [SDK](/docs/sdk)
+- [Lifecycle](/docs/lifecycle)
+- [Architecture](/docs/architecture)

@@ -1,0 +1,49 @@
+---
+title: Architecture
+description: The system boundary, flow, and repository structure behind EEAP.
+---
+
+The easiest way to misunderstand EEAP is to ask it to do everything at once.
+
+This page narrows the picture before diving into field-level details.
+
+## Runtime Boundary
+
+<RuntimeBoundaryDiagram />
+
+Read the diagram top to bottom:
+
+1. Agent planning, discovery, federation, and collaboration sit **above** EEAP.
+2. EEAP itself is the execution truth boundary.
+3. Vendor protocols, transport bindings, and device middleware sit **below** EEAP.
+4. Evidence and settlement are connected to the same boundary, but they do not need to bloat the v0 core object model.
+
+## Execution Path
+
+<ExecutionPathDiagram />
+
+The intended flow is:
+
+1. choose a capability
+2. submit a request with an idempotency key
+3. wait for executor admission and downstream facts
+4. collect evidence
+5. judge completion against the declared rule
+6. attach settlement or accounting later if the workflow needs it
+
+## Why This Split Matters
+
+If discovery, routing, collaboration, transport, evidence, and settlement all get mixed together, the protocol becomes hard to reason about and hard to implement consistently.
+
+Keeping the boundary narrow makes the protocol easier to:
+
+- explain
+- bind to multiple transports
+- map onto external systems
+- verify with conformance tests
+
+## Read Next
+
+- [Positioning](/docs/positioning)
+- [Core](/docs/core)
+- [Lifecycle](/docs/lifecycle)

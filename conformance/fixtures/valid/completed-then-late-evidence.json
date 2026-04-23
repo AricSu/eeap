@@ -1,0 +1,79 @@
+{
+  "trace": {
+    "capability": {
+      "id": "warehouse.door.unlock",
+      "title": "Unlock Warehouse Door",
+      "description": "Unlock a named warehouse door via access control system",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "siteId": {
+            "type": "string"
+          },
+          "doorId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "siteId",
+          "doorId"
+        ]
+      },
+      "completionMode": "accepted_only",
+      "idempotent": true
+    },
+    "requests": [
+      {
+        "executionId": "exec-late-evidence",
+        "capabilityId": "warehouse.door.unlock",
+        "input": {
+          "siteId": "ams-1",
+          "doorId": "door-11"
+        },
+        "idempotencyKey": "idem-late-evidence",
+        "requestedAt": "2026-04-23T20:13:00Z"
+      }
+    ],
+    "events": [
+      {
+        "eventId": "evt-requested",
+        "executionId": "exec-late-evidence",
+        "type": "requested",
+        "at": "2026-04-23T20:13:00Z"
+      },
+      {
+        "eventId": "evt-ack",
+        "executionId": "exec-late-evidence",
+        "type": "acknowledged",
+        "at": "2026-04-23T20:13:01Z"
+      },
+      {
+        "eventId": "evt-completed",
+        "executionId": "exec-late-evidence",
+        "type": "completed",
+        "at": "2026-04-23T20:13:02Z"
+      },
+      {
+        "eventId": "evt-evidence",
+        "executionId": "exec-late-evidence",
+        "type": "evidence_recorded",
+        "at": "2026-04-23T20:13:05Z",
+        "evidenceIds": [
+          "ev-late-snapshot"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "evidenceId": "ev-late-snapshot",
+        "executionId": "exec-late-evidence",
+        "kind": "snapshot",
+        "recordedAt": "2026-04-23T20:13:04Z",
+        "summary": "Snapshot stored after terminal completion",
+        "data": {
+          "uri": "s3://audit/late-snapshot.png"
+        }
+      }
+    ]
+  }
+}

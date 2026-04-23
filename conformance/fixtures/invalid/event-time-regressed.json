@@ -1,0 +1,47 @@
+{
+  "expectedIssueCodes": [
+    "event_time_regressed"
+  ],
+  "trace": {
+    "capability": {
+      "id": "warehouse.door.unlock",
+      "title": "Unlock Warehouse Door",
+      "description": "Unlock a named warehouse door via access control system",
+      "inputSchema": {
+        "type": "object"
+      },
+      "completionMode": "accepted_only",
+      "idempotent": true
+    },
+    "requests": [
+      {
+        "executionId": "exec-time-regressed",
+        "capabilityId": "warehouse.door.unlock",
+        "input": {},
+        "idempotencyKey": "idem-time-regressed",
+        "requestedAt": "2026-04-23T20:26:00Z"
+      }
+    ],
+    "events": [
+      {
+        "eventId": "evt-requested",
+        "executionId": "exec-time-regressed",
+        "type": "requested",
+        "at": "2026-04-23T20:26:00Z"
+      },
+      {
+        "eventId": "evt-ack",
+        "executionId": "exec-time-regressed",
+        "type": "acknowledged",
+        "at": "2026-04-23T20:26:05Z"
+      },
+      {
+        "eventId": "evt-completed",
+        "executionId": "exec-time-regressed",
+        "type": "completed",
+        "at": "2026-04-23T20:26:03Z"
+      }
+    ],
+    "evidence": []
+  }
+}

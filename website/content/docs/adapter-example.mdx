@@ -1,0 +1,194 @@
+---
+title: Adapter Example
+description: How an EEAP adapter turns a runtime request and vendor webhook into a valid execution trace.
+---
+
+This page focuses on the implementer question that matters most in practice:
+
+**how does an adapter turn real vendor traffic into EEAP facts?**
+
+The example is a warehouse door unlock flow:
+
+1. the runtime requests `warehouse.door.unlock`
+2. the controller accepts the command
+3. the controller later sends a webhook reporting `lockState=unlocked`
+4. the adapter translates that webhook into evidence, then marks the execution complete
+
+## Runtime Request
+
+The adapter starts with a normal EEAP request:
+
+```ts
+const request = {
+  executionId: "exec-webhook-demo",
+  capabilityId: "warehouse.door.unlock",
+  input: {
+    siteId: "ams-1",
+    doorId: "door-8",
+  },
+  idempotencyKey: "idem-exec-webhook-demo",
+  requestedAt: "2026-04-23T20:12:00Z",
+};
+```
+
+That becomes the initial `ExecutionTrace` with one `requested` event.
+
+## Vendor Facts
+
+Most adapters then receive two downstream facts.
+
+Admission:
+
+```ts
+{
+  controllerRequestId: "ctrl-req-441",
+  at: "2026-04-23T20:12:02Z"
+}
+```
+
+Later, a webhook:
+
+```ts
+{
+  controllerEventId: "ctrl-evt-9912",
+  controllerId: "ctrl-a7",
+  siteId: "ams-1",
+  doorId: "door-8",
+  lockState: "unlocked",
+  observedAt: "2026-04-23T20:12:03Z",
+  receivedAt: "2026-04-23T20:12:04Z",
+  completedAt: "2026-04-23T20:12:05Z"
+}
+```
+
+Those are vendor-native facts, not EEAP objects yet.
+
+## Translation Step
+
+The adapter translates them like this:
+
+```ts
+function applyControllerWebhook(trace, webhook) {
+  const executionId = trace.requests[0].executionId;
+  const evidenceId = `ev-${webhook.controllerEventId}`;
+
+  trace.evidence.push({
+    evidenceId,
+    executionId,
+    kind: "readback",
+    recordedAt: webhook.observedAt,
+    summary: `Controller ${webhook.controllerId} reported ${webhook.lockState}`,
+    data: {
+      siteId: webhook.siteId,
+      doorId: webhook.doorId,
+      lockState: webhook.lockState,
+      controllerId: webhook.controllerId,
+      controllerEventId: webhook.controllerEventId,
+    },
+    sourceRef: `vendor://controllers/${webhook.controllerId}/events/${webhook.controllerEventId}`,
+  });
+
+  trace.events.push({
+    eventId: `evt-evidence-${webhook.controllerEventId}`,
+    executionId,
+    type: "evidence_recorded",
+    at: webhook.receivedAt,
+    evidenceIds: [evidenceId],
+  });
+
+  trace.events.push({
+    eventId: `evt-completed-${webhook.controllerEventId}`,
+    executionId,
+    type: "completed",
+    at: webhook.completedAt,
+  });
+}
+```
+
+The ordering is the important part:
+
+- do not jump from vendor callback straight to `completed`
+- first create `EvidenceRecord`
+- then emit `evidence_recorded`
+- only then emit `completed`
+
+That is what makes `readback_confirmed` semantically defensible.
+
+## Final EEAP Trace
+
+The runnable example in this repo produces a trace shaped like this:
+
+```json
+{
+  "requests": [
+    {
+      "executionId": "exec-webhook-demo",
+      "capabilityId": "warehouse.door.unlock"
+    }
+  ],
+  "events": [
+    {
+      "type": "requested",
+      "executionId": "exec-webhook-demo"
+    },
+    {
+      "type": "acknowledged",
+      "executionId": "exec-webhook-demo"
+    },
+    {
+      "type": "evidence_recorded",
+      "executionId": "exec-webhook-demo",
+      "evidenceIds": ["ev-ctrl-evt-9912"]
+    },
+    {
+      "type": "completed",
+      "executionId": "exec-webhook-demo"
+    }
+  ],
+  "evidence": [
+    {
+      "evidenceId": "ev-ctrl-evt-9912",
+      "executionId": "exec-webhook-demo",
+      "kind": "readback",
+      "sourceRef": "vendor://controllers/ctrl-a7/events/ctrl-evt-9912"
+    }
+  ]
+}
+```
+
+## Run It
+
+From the repo root:
+
+```bash
+npm run build --workspace @eeap/sdk-ts
+node sdk/ts/examples/assemble-trace-from-webhook.mjs
+```
+
+Key output:
+
+```text
+Webhook-assembled trace: true
+Adapter webhook assembly passed conformance.
+```
+
+## Why This Page Exists
+
+The common implementation mistake is collapsing these two statements into one:
+
+- "the controller API returned successfully"
+- "the world is now in the target state"
+
+EEAP exists to keep them separate.
+
+In this example:
+
+- `acknowledged` means the controller accepted responsibility
+- `EvidenceRecord` captures what the controller later observed
+- `completed` is emitted only after that evidence exists
+
+## Read Next
+
+- [SDK](/docs/sdk)
+- [Lifecycle](/docs/lifecycle)
+- [Conformance](/docs/conformance)

@@ -1,0 +1,321 @@
+---
+title: SDK
+description: How to use the TypeScript reference validator SDK without digging through source code.
+---
+
+The current TypeScript package is a **reference validator SDK**.
+
+It is for two practical jobs:
+
+1. validate raw EEAP objects such as `ExecutionRequest` or `ExecutionEvent`
+2. validate a full `ExecutionTrace` against the EEAP v1 conformance profile
+
+It is **not yet** a transport client, MCP wrapper, or adapter server toolkit.
+
+## What You Import
+
+The public entrypoint exports:
+
+- `validateCapabilityDescriptor`
+- `validateExecutionRequest`
+- `validateExecutionEvent`
+- `validateEvidenceRecord`
+- `validateExecutionTrace`
+- `assertExecutionTrace`
+- `formatConformanceIssues`
+- `ConformanceError`
+
+For most users, the last three are the important ones.
+
+## Real Example
+
+Below is a real conformance trace for `warehouse.door.unlock`.
+
+This is the kind of trace an adapter would produce after:
+
+1. a runtime asks to unlock warehouse door `door-8` at site `ams-1`
+2. the executor acknowledges the request
+3. the controller reports `lockState=unlocked`
+4. the runtime marks the execution complete because the capability uses `readback_confirmed`
+
+```ts
+import {
+  assertExecutionTrace,
+  formatConformanceIssues,
+  validateExecutionTrace,
+  type ExecutionTrace,
+} from "@eeap/sdk-ts";
+
+const trace: ExecutionTrace = {
+  capability: {
+    id: "warehouse.door.unlock",
+    title: "Unlock Warehouse Door",
+    description: "Unlock a named warehouse door via access control system",
+    inputSchema: {
+      type: "object",
+      properties: {
+        siteId: { type: "string" },
+        doorId: { type: "string" },
+      },
+      required: ["siteId", "doorId"],
+    },
+    evidenceModes: ["readback"],
+    completionMode: "readback_confirmed",
+    idempotent: true,
+  },
+  requests: [
+    {
+      executionId: "exec-readback",
+      capabilityId: "warehouse.door.unlock",
+      input: {
+        siteId: "ams-1",
+        doorId: "door-8",
+      },
+      idempotencyKey: "idem-readback",
+      requestedAt: "2026-04-23T20:12:00Z",
+      evidencePolicy: {
+        required: true,
+      },
+    },
+  ],
+  events: [
+    {
+      eventId: "evt-requested",
+      executionId: "exec-readback",
+      type: "requested",
+      at: "2026-04-23T20:12:00Z",
+    },
+    {
+      eventId: "evt-ack",
+      executionId: "exec-readback",
+      type: "acknowledged",
+      at: "2026-04-23T20:12:02Z",
+    },
+    {
+      eventId: "evt-evidence",
+      executionId: "exec-readback",
+      type: "evidence_recorded",
+      at: "2026-04-23T20:12:04Z",
+      evidenceIds: ["ev-readback"],
+    },
+    {
+      eventId: "evt-completed",
+      executionId: "exec-readback",
+      type: "completed",
+      at: "2026-04-23T20:12:05Z",
+    },
+  ],
+  evidence: [
+    {
+      evidenceId: "ev-readback",
+      executionId: "exec-readback",
+      kind: "readback",
+      recordedAt: "2026-04-23T20:12:03Z",
+      summary: "Controller state matched expected unlocked state",
+      data: {
+        lockState: "unlocked",
+      },
+    },
+  ],
+};
+
+const result = validateExecutionTrace(trace);
+
+if (!result.ok) {
+  console.error(formatConformanceIssues(result.issues));
+}
+
+assertExecutionTrace(trace);
+```
+
+This trace passes because:
+
+- `completed` happens after `acknowledged`
+- `readback_confirmed` has supporting evidence before `completed`
+- `evidence_recorded` points at a real `EvidenceRecord`
+- the request is idempotent and internally consistent
+
+## Adapter Walkthrough
+
+The more useful question for implementers is usually not "what does a finished trace look like?"
+
+It is:
+
+**how does an adapter turn runtime calls and vendor webhooks into that trace?**
+
+Below is the same warehouse-door scenario, but this time shown as adapter code.
+
+```ts
+function createTraceFromRuntimeRequest({ executionId, siteId, doorId, requestedAt }) {
+  return {
+    capability,
+    requests: [
+      {
+        executionId,
+        capabilityId: capability.id,
+        input: { siteId, doorId },
+        idempotencyKey: `idem-${executionId}`,
+        requestedAt,
+        evidencePolicy: { required: true },
+      },
+    ],
+    events: [
+      {
+        eventId: `evt-requested-${executionId}`,
+        executionId,
+        type: "requested",
+        at: requestedAt,
+      },
+    ],
+    evidence: [],
+  };
+}
+
+function applyControllerWebhook(trace, webhook) {
+  const executionId = trace.requests[0].executionId;
+  const evidenceId = `ev-${webhook.controllerEventId}`;
+
+  trace.evidence.push({
+    evidenceId,
+    executionId,
+    kind: "readback",
+    recordedAt: webhook.observedAt,
+    summary: `Controller ${webhook.controllerId} reported ${webhook.lockState}`,
+    data: {
+      lockState: webhook.lockState,
+      controllerId: webhook.controllerId,
+      controllerEventId: webhook.controllerEventId,
+    },
+    sourceRef: `vendor://controllers/${webhook.controllerId}/events/${webhook.controllerEventId}`,
+  });
+
+  trace.events.push({
+    eventId: `evt-evidence-${webhook.controllerEventId}`,
+    executionId,
+    type: "evidence_recorded",
+    at: webhook.receivedAt,
+    evidenceIds: [evidenceId],
+  });
+
+  trace.events.push({
+    eventId: `evt-completed-${webhook.controllerEventId}`,
+    executionId,
+    type: "completed",
+    at: webhook.completedAt,
+  });
+
+  return trace;
+}
+```
+
+The important boundary is this:
+
+- the vendor webhook is **not** the EEAP object model
+- the adapter first translates it into `EvidenceRecord`
+- then the adapter emits `evidence_recorded`
+- only after that does it emit `completed`
+
+That is the piece most teams get wrong. They jump straight from "vendor API said OK" to `completed`.
+
+The repo includes this exact flow as a runnable file: `sdk/ts/examples/assemble-trace-from-webhook.mjs`.
+
+If you want the full step-by-step walkthrough, read [Adapter Example](/docs/adapter-example).
+
+## Fastest Path
+
+If you already have a trace object, this is the shortest useful flow:
+
+```ts
+import {
+  assertExecutionTrace,
+  formatConformanceIssues,
+  validateExecutionTrace,
+} from "@eeap/sdk-ts";
+
+const result = validateExecutionTrace(trace);
+
+if (!result.ok) {
+  console.error(formatConformanceIssues(result.issues));
+}
+
+assertExecutionTrace(trace);
+```
+
+`validateExecutionTrace` returns structured diagnostics.
+
+`assertExecutionTrace` returns the original trace when valid and throws `ConformanceError` when invalid.
+
+## What An `ExecutionTrace` Looks Like
+
+The validator expects one object with four top-level fields:
+
+```ts
+type ExecutionTrace = {
+  capability: CapabilityDescriptor;
+  requests: ExecutionRequest[];
+  events: ExecutionEvent[];
+  evidence: EvidenceRecord[];
+};
+```
+
+That shape gives the validator enough context to enforce:
+
+- lifecycle order
+- terminal-state rules
+- evidence requirements
+- idempotency rules
+
+## Readable Failure Output
+
+The low-level validator returns issue objects:
+
+```ts
+type ConformanceIssue = {
+  code: string;
+  message: string;
+  path: string;
+};
+```
+
+Use `formatConformanceIssues` when you want readable output in CI logs, tests, or adapter debugging sessions.
+
+## Runnable Example
+
+The repo includes a working example under `sdk/ts/examples/validate-trace.mjs`.
+
+It uses the same warehouse-door scenario shown above and also demonstrates a broken variant that fails conformance.
+
+There is also a second runnable example under `sdk/ts/examples/assemble-trace-from-webhook.mjs` that starts with a runtime request, then assembles the final trace from a simulated controller webhook.
+
+From the repo root:
+
+```bash
+npm run build --workspace @eeap/sdk-ts
+node sdk/ts/examples/validate-trace.mjs
+node sdk/ts/examples/assemble-trace-from-webhook.mjs
+```
+
+Expected output:
+
+```text
+Valid warehouse trace: true
+assertExecutionTrace passed for the valid trace.
+
+Broken warehouse trace: false
+EEAP conformance issues (1):
+1. evidence_required_for_completion at /events/2/type: Execution exec-readback completed without supporting evidence required by completionMode readback_confirmed
+```
+
+For the webhook assembly script, the key lines are:
+
+```text
+Webhook-assembled trace: true
+Adapter webhook assembly passed conformance.
+```
+
+## Read Next
+
+- [Adapter Example](/docs/adapter-example)
+- [Conformance](/docs/conformance)
+- [Lifecycle](/docs/lifecycle)
+- [Core](/docs/core)

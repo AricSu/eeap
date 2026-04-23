@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://eeap.dev/schemas/execution-request.schema.json",
+  "title": "ExecutionRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "executionId",
+    "capabilityId",
+    "input",
+    "idempotencyKey",
+    "requestedAt"
+  ],
+  "properties": {
+    "executionId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "capabilityId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "input": {
+      "type": "object"
+    },
+    "idempotencyKey": {
+      "type": "string",
+      "minLength": 1
+    },
+    "requestedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "contextRef": {
+      "type": "string"
+    },
+    "deadlineAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "requestedBy": {
+      "type": "string"
+    },
+    "evidencePolicy": {
+      "type": "object"
+    }
+  }
+}

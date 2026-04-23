@@ -1,0 +1,12 @@
+{
+  "pages": [
+    "index",
+    "architecture",
+    "positioning",
+    "core",
+    "lifecycle",
+    "sdk",
+    "adapter-example",
+    "conformance"
+  ]
+}

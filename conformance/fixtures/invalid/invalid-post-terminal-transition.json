@@ -1,0 +1,53 @@
+{
+  "expectedIssueCodes": [
+    "invalid_post_terminal_transition"
+  ],
+  "trace": {
+    "capability": {
+      "id": "warehouse.door.unlock",
+      "title": "Unlock Warehouse Door",
+      "description": "Unlock a named warehouse door via access control system",
+      "inputSchema": {
+        "type": "object"
+      },
+      "completionMode": "accepted_only",
+      "idempotent": true
+    },
+    "requests": [
+      {
+        "executionId": "exec-post-terminal",
+        "capabilityId": "warehouse.door.unlock",
+        "input": {},
+        "idempotencyKey": "idem-post-terminal",
+        "requestedAt": "2026-04-23T20:23:00Z"
+      }
+    ],
+    "events": [
+      {
+        "eventId": "evt-requested",
+        "executionId": "exec-post-terminal",
+        "type": "requested",
+        "at": "2026-04-23T20:23:00Z"
+      },
+      {
+        "eventId": "evt-ack",
+        "executionId": "exec-post-terminal",
+        "type": "acknowledged",
+        "at": "2026-04-23T20:23:01Z"
+      },
+      {
+        "eventId": "evt-completed",
+        "executionId": "exec-post-terminal",
+        "type": "completed",
+        "at": "2026-04-23T20:23:02Z"
+      },
+      {
+        "eventId": "evt-requested-late",
+        "executionId": "exec-post-terminal",
+        "type": "requested",
+        "at": "2026-04-23T20:23:03Z"
+      }
+    ],
+    "evidence": []
+  }
+}

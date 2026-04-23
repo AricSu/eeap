@@ -1,0 +1,58 @@
+---
+title: Lifecycle
+description: The current v0 lifecycle facts and evidence rules for EEAP executions.
+---
+
+EEAP lifecycle semantics separate invocation from truth in the external world.
+
+## Timeline
+
+<LifecycleTimelineDiagram />
+
+## Canonical Event Types
+
+### `requested`
+
+Intent has been submitted. This does **not** imply the executor has accepted the work.
+
+### `acknowledged`
+
+The execution implementation has accepted responsibility for the attempt. This does **not** imply the external effect happened.
+
+### `completed`
+
+The executor asserts that the declared completion rule has been met. For physical-world or external-system effects, this should usually correspond to `readback_confirmed` or `observed_effect`, not just a local return value.
+
+### `failed`
+
+The execution has reached a terminal non-success outcome.
+
+### `evidence_recorded`
+
+Additional facts are now available for inspection. Evidence does not imply success by itself.
+
+## Idempotency
+
+- Every `ExecutionRequest` carries an `idempotencyKey`.
+- Retries with the same key should converge on one logical action.
+- Duplicate submission must not create duplicate terminal outcomes for one intent.
+
+## Completion Rules
+
+Suggested values:
+
+- `accepted_only`
+- `readback_confirmed`
+- `observed_effect`
+
+The more external the system, the more dangerous it becomes to treat "no local error" as equivalent to "the world changed."
+
+## Evidence Rules
+
+Evidence should be required whenever:
+
+- the capability declares `readback_confirmed`
+- the capability declares `observed_effect`
+- the runtime explicitly requests evidence through policy
+
+That is the point where agent infrastructure stops being glorified function calling and starts behaving like accountable execution.

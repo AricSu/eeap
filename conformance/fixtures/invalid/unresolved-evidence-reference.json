@@ -1,0 +1,70 @@
+{
+  "expectedIssueCodes": [
+    "unresolved_evidence_reference"
+  ],
+  "trace": {
+    "capability": {
+      "id": "warehouse.door.unlock",
+      "title": "Unlock Warehouse Door",
+      "description": "Unlock a named warehouse door via access control system",
+      "inputSchema": {
+        "type": "object"
+      },
+      "completionMode": "readback_confirmed",
+      "idempotent": true
+    },
+    "requests": [
+      {
+        "executionId": "exec-unresolved-evidence",
+        "capabilityId": "warehouse.door.unlock",
+        "input": {},
+        "idempotencyKey": "idem-unresolved-evidence",
+        "requestedAt": "2026-04-23T20:25:00Z"
+      },
+      {
+        "executionId": "exec-someone-else",
+        "capabilityId": "warehouse.door.unlock",
+        "input": {},
+        "idempotencyKey": "idem-someone-else",
+        "requestedAt": "2026-04-23T20:25:30Z"
+      }
+    ],
+    "events": [
+      {
+        "eventId": "evt-requested",
+        "executionId": "exec-unresolved-evidence",
+        "type": "requested",
+        "at": "2026-04-23T20:25:00Z"
+      },
+      {
+        "eventId": "evt-ack",
+        "executionId": "exec-unresolved-evidence",
+        "type": "acknowledged",
+        "at": "2026-04-23T20:25:01Z"
+      },
+      {
+        "eventId": "evt-evidence",
+        "executionId": "exec-unresolved-evidence",
+        "type": "evidence_recorded",
+        "at": "2026-04-23T20:25:02Z",
+        "evidenceIds": [
+          "ev-other-execution"
+        ]
+      },
+      {
+        "eventId": "evt-completed",
+        "executionId": "exec-unresolved-evidence",
+        "type": "completed",
+        "at": "2026-04-23T20:25:03Z"
+      }
+    ],
+    "evidence": [
+      {
+        "evidenceId": "ev-other-execution",
+        "executionId": "exec-someone-else",
+        "kind": "readback",
+        "recordedAt": "2026-04-23T20:25:02Z"
+      }
+    ]
+  }
+}

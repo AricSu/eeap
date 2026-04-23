@@ -1,0 +1,54 @@
+{
+  "trace": {
+    "capability": {
+      "id": "warehouse.door.unlock",
+      "title": "Unlock Warehouse Door",
+      "description": "Unlock a named warehouse door via access control system",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "siteId": {
+            "type": "string"
+          },
+          "doorId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "siteId",
+          "doorId"
+        ]
+      },
+      "completionMode": "accepted_only",
+      "idempotent": true
+    },
+    "requests": [
+      {
+        "executionId": "exec-requested-failed",
+        "capabilityId": "warehouse.door.unlock",
+        "input": {
+          "siteId": "ams-1",
+          "doorId": "door-3"
+        },
+        "idempotencyKey": "idem-requested-failed",
+        "requestedAt": "2026-04-23T20:10:00Z"
+      }
+    ],
+    "events": [
+      {
+        "eventId": "evt-requested",
+        "executionId": "exec-requested-failed",
+        "type": "requested",
+        "at": "2026-04-23T20:10:00Z"
+      },
+      {
+        "eventId": "evt-failed",
+        "executionId": "exec-requested-failed",
+        "type": "failed",
+        "at": "2026-04-23T20:10:05Z",
+        "summary": "Controller rejected the request"
+      }
+    ],
+    "evidence": []
+  }
+}

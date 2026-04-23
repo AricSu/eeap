@@ -1,0 +1,50 @@
+{
+  "expectedIssueCodes": [
+    "evidence_required_for_completion"
+  ],
+  "trace": {
+    "capability": {
+      "id": "warehouse.door.unlock",
+      "title": "Unlock Warehouse Door",
+      "description": "Unlock a named warehouse door via access control system",
+      "inputSchema": {
+        "type": "object"
+      },
+      "completionMode": "observed_effect",
+      "idempotent": true
+    },
+    "requests": [
+      {
+        "executionId": "exec-missing-evidence",
+        "capabilityId": "warehouse.door.unlock",
+        "input": {},
+        "idempotencyKey": "idem-missing-evidence",
+        "requestedAt": "2026-04-23T20:24:00Z",
+        "evidencePolicy": {
+          "required": true
+        }
+      }
+    ],
+    "events": [
+      {
+        "eventId": "evt-requested",
+        "executionId": "exec-missing-evidence",
+        "type": "requested",
+        "at": "2026-04-23T20:24:00Z"
+      },
+      {
+        "eventId": "evt-ack",
+        "executionId": "exec-missing-evidence",
+        "type": "acknowledged",
+        "at": "2026-04-23T20:24:01Z"
+      },
+      {
+        "eventId": "evt-completed",
+        "executionId": "exec-missing-evidence",
+        "type": "completed",
+        "at": "2026-04-23T20:24:02Z"
+      }
+    ],
+    "evidence": []
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name": "eeap-website",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "react-router build && node scripts/generate-llms-files.mjs",
+    "build:pages": "react-router build && node scripts/generate-llms-files.mjs && node scripts/prepare-pages.mjs",
+    "dev": "react-router dev",
+    "typecheck": "react-router typegen && fumadocs-mdx && tsc --noEmit"
+  },
+  "dependencies": {
+    "@react-router/node": "^7.14.2",
+    "fumadocs-core": "^16.8.2",
+    "fumadocs-mdx": "^14.3.1",
+    "fumadocs-ui": "^16.8.2",
+    "lucide-react": "^1.9.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-router": "^7.14.2",
+    "isbot": "^5"
+  },
+  "devDependencies": {
+    "@react-router/dev": "^7.14.2",
+    "@tailwindcss/vite": "^4.2.4",
+    "@types/mdx": "^2.0.13",
+    "@types/node": "^25.6.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "tailwindcss": "^4.2.4",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.10"
+  }
+}
