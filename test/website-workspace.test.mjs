@@ -97,6 +97,16 @@ test('pages workflow uses current actions and explicit enablement handling', () 
     /PAGES_ENABLEMENT_TOKEN|Pages is not enabled for this repository|Settings > Pages/,
     'expected Pages workflow to document or automate the repo enablement prerequisite',
   );
+  assert.doesNotMatch(
+    workflow,
+    /if:\s*\$\{\{\s*secrets\./,
+    'expected Pages workflow to avoid using secrets directly in if expressions',
+  );
+  assert.match(
+    workflow,
+    /env:\s*[\s\S]*PAGES_ENABLEMENT_TOKEN:/,
+    'expected Pages workflow to map the optional enablement token into env before branching on it',
+  );
 });
 
 test('docs information architecture includes architecture page and diagrams', () => {

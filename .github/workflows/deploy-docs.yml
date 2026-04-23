@@ -27,6 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       WEBSITE_BASENAME: /${{ github.event.repository.name }}
+      PAGES_ENABLEMENT_TOKEN: ${{ secrets.PAGES_ENABLEMENT_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -38,7 +39,7 @@ jobs:
           cache: npm
 
       - name: Verify Pages is enabled
-        if: ${{ secrets.PAGES_ENABLEMENT_TOKEN == '' }}
+        if: ${{ env.PAGES_ENABLEMENT_TOKEN == '' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -63,15 +64,15 @@ jobs:
           exit 1
 
       - name: Configure Pages
-        if: ${{ secrets.PAGES_ENABLEMENT_TOKEN == '' }}
+        if: ${{ env.PAGES_ENABLEMENT_TOKEN == '' }}
         uses: actions/configure-pages@v6
 
       - name: Configure Pages (auto-enable)
-        if: ${{ secrets.PAGES_ENABLEMENT_TOKEN != '' }}
+        if: ${{ env.PAGES_ENABLEMENT_TOKEN != '' }}
         uses: actions/configure-pages@v6
         with:
           enablement: true
-          token: ${{ secrets.PAGES_ENABLEMENT_TOKEN }}
+          token: ${{ env.PAGES_ENABLEMENT_TOKEN }}
 
       - name: Install dependencies
         run: npm ci
