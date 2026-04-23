@@ -69,6 +69,36 @@ test('website route/content files and pages workflow exist', () => {
   }
 });
 
+test('pages workflow uses current actions and explicit enablement handling', () => {
+  const workflow = readFileSync(join(root, '.github', 'workflows', 'deploy-docs.yml'), 'utf8');
+
+  assert.match(
+    workflow,
+    /actions\/checkout@v6/,
+    'expected Pages workflow to use checkout@v6',
+  );
+  assert.match(
+    workflow,
+    /actions\/setup-node@v6/,
+    'expected Pages workflow to use setup-node@v6',
+  );
+  assert.match(
+    workflow,
+    /actions\/configure-pages@v6/,
+    'expected Pages workflow to use configure-pages@v6',
+  );
+  assert.match(
+    workflow,
+    /actions\/upload-pages-artifact@v4/,
+    'expected Pages workflow to use upload-pages-artifact@v4',
+  );
+  assert.match(
+    workflow,
+    /PAGES_ENABLEMENT_TOKEN|Pages is not enabled for this repository|Settings > Pages/,
+    'expected Pages workflow to document or automate the repo enablement prerequisite',
+  );
+});
+
 test('docs information architecture includes architecture page and diagrams', () => {
   const meta = readFileSync(join(root, 'website', 'content', 'docs', 'meta.json'), 'utf8');
   assert.match(meta, /"architecture"/, 'expected docs meta to include architecture page');

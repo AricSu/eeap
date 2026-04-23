@@ -29,16 +29,49 @@ jobs:
       WEBSITE_BASENAME: /${{ github.event.repository.name }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
 
+      - name: Verify Pages is enabled
+        if: ${{ secrets.PAGES_ENABLEMENT_TOKEN == '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          status="$(
+            curl -sS \
+              -o /tmp/pages.json \
+              -w '%{http_code}' \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/pages"
+          )"
+
+          if [ "${status}" = "200" ]; then
+            echo "GitHub Pages is already enabled for ${GITHUB_REPOSITORY}."
+            exit 0
+          fi
+
+          echo "::error title=Enable GitHub Pages first::GitHub Pages is not enabled for ${GITHUB_REPOSITORY}. Open Settings > Pages and set Source to GitHub Actions, or add a repository secret named PAGES_ENABLEMENT_TOKEN so this workflow can enable Pages automatically."
+          cat /tmp/pages.json
+          exit 1
+
       - name: Configure Pages
-        uses: actions/configure-pages@v5
+        if: ${{ secrets.PAGES_ENABLEMENT_TOKEN == '' }}
+        uses: actions/configure-pages@v6
+
+      - name: Configure Pages (auto-enable)
+        if: ${{ secrets.PAGES_ENABLEMENT_TOKEN != '' }}
+        uses: actions/configure-pages@v6
+        with:
+          enablement: true
+          token: ${{ secrets.PAGES_ENABLEMENT_TOKEN }}
 
       - name: Install dependencies
         run: npm ci
@@ -47,7 +80,7 @@ jobs:
         run: npm run docs:build:pages
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: website/build/client
 
